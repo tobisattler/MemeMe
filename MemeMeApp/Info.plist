@@ -2,6 +2,12 @@
 <!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
 <plist version="1.0">
 <dict>
+	<key>NSPhotoLibraryAddUsageDescription</key>
+	<string>MemeMe needs write access to your photo library to be able to save your cool new Memes.</string>
+	<key>NSPhotoLibraryUsageDescription</key>
+	<string>If you want to use existing photos to create your Memes, MemeMe needs access to your photo library.</string>
+	<key>NSCameraUsageDescription</key>
+	<string>If you want to take new photos to create your Memes, MemeMe needs access to the Camera.</string>
 	<key>CFBundleDevelopmentRegion</key>
 	<string>$(DEVELOPMENT_LANGUAGE)</string>
 	<key>CFBundleExecutable</key>
