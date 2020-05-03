@@ -93,7 +93,11 @@ class MemeEditorViewController: UIViewController, UIImagePickerControllerDelegat
     
     func save() {
         // creates a Meme object using the previously set class property memedImage
-        let _ = Meme(topText: topTextField.text!, bottomText: bottomTextField.text!, originalImage: imageView.image!, memedImage: memedImage!)
+        let meme = Meme(topText: topTextField.text!, bottomText: bottomTextField.text!, originalImage: imageView.image!, memedImage: memedImage!)
+        
+        // add meme to the appDelegate meme array
+        let appDelegate = UIApplication.shared.delegate as!AppDelegate
+        appDelegate.memes.append(meme)
     }
     
     func generateMemedImage() ->UIImage {
@@ -142,6 +146,7 @@ class MemeEditorViewController: UIViewController, UIImagePickerControllerDelegat
         activityViewController.completionWithItemsHandler = {
             (activityType: UIActivity.ActivityType?, completed: Bool, arrayReturnedItems: [Any]?, error: Error?) in
             self.save()
+            self.dismiss(animated: true, completion: nil)
         }
         self.present(activityViewController, animated: true, completion: nil)
     }
@@ -159,8 +164,9 @@ class MemeEditorViewController: UIViewController, UIImagePickerControllerDelegat
     }
     
     @IBAction func cancelAction(_ sender: Any) {
-        // if the Cancel-Button of the top Toolbar is clicked, everything needs to be reset to the initial values
+        // if the Cancel-Button of the top Toolbar is clicked, everything needs to be reset to the initial values and editor needs to be closed
         prepareNewMeme()
+        self.dismiss(animated: true, completion: nil)
     }
     
     // MARK: UIImagePickerControllerDelegate
