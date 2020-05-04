@@ -34,8 +34,8 @@ class SentMemesCollectionViewController: SentMemesViewController, UICollectionVi
         calculateSectionInset(frameSize: frameSize)
     }
     
+    // called when screen is rotated
     override func viewWillTransition(to size: CGSize, with coordinator: UIViewControllerTransitionCoordinator) {
-        
         // calculate left and right margins, if in landscape mode
         calculateSectionInset(frameSize: size)
     }
@@ -43,15 +43,19 @@ class SentMemesCollectionViewController: SentMemesViewController, UICollectionVi
     override func viewWillAppear(_ animated: Bool) {
         super.viewWillAppear(animated)
         
-        // reload data for the collectionView
         self.collectionView.reloadData()
-        
-        // TODO: Add only new items (get old size of list and append only new ones)
     }
     
     // MARK: - UI helpers
     
+    // Note: This is a helper function used as a workaround for an IOS 13.x bug, called within MemeEditorViewController. More information on this bug is inclueded there.
+    func reloadData() {
+        // reload data for the collectionView
+        self.collectionView.reloadData()
+    }
+    
     func calculateSectionInset(frameSize size: CGSize) {
+        // if flowLayout is nil, return. This can happen when screen is rotated into landscape mode while Meme Editor is open
         if (self.flowLayout == nil) {
             return
         }

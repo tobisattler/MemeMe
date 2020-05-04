@@ -23,12 +23,15 @@ class SentMemesViewController: UIViewController {
     override func viewDidLoad() {
         super.viewDidLoad()
         
+        // add Plus-Entry to the top navigation bar.
         self.navigationItem.rightBarButtonItem = UIBarButtonItem(image: UIImage(systemName: "plus"), style: .plain, target: self, action: #selector(showMemeEditor))
     }
     
     // MARK: - helper functions
     @objc func showMemeEditor() {
+        // instantiate MemeEditorViewController
         let memeEditorVC = self.storyboard?.instantiateViewController(identifier: "MemeEditor") as! MemeEditorViewController
+        // set modalPresentationStyle to fullscreen. Otherwise viewWillAppear will not be invoked after closing the editor (i.e. list won't get updated)
         memeEditorVC.modalPresentationStyle = .fullScreen
         self.present(memeEditorVC, animated: true, completion: nil)
     }
@@ -36,7 +39,7 @@ class SentMemesViewController: UIViewController {
     func showMemeDetails(memeId id: Int) {
         // instantiate MemeDetailViewController, set the correct meme and push it to the navigation stack
         let meme = self.memes[id]
-        let memeDetailVC = self.storyboard?.instantiateViewController(identifier: "MemeDetailViewController") as! MemeDetailViewController
+        let memeDetailVC = self.storyboard!.instantiateViewController(withIdentifier: "MemeDetailViewController") as! MemeDetailViewController
         memeDetailVC.meme = meme
         self.navigationController!.pushViewController(memeDetailVC, animated: true)
     }
