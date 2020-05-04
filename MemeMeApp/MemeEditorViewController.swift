@@ -30,6 +30,8 @@ class MemeEditorViewController: UIViewController, UIImagePickerControllerDelegat
     var activeTextField: UITextField?
     var memedImage: UIImage?
     
+    var meme: Meme?
+    
     // MARK: App lifecycle functions
     
     override func viewDidLoad() {
@@ -49,8 +51,26 @@ class MemeEditorViewController: UIViewController, UIImagePickerControllerDelegat
         prepareTextField(topTextField, textAttributes: memeTextAttributes)
         prepareTextField(bottomTextField, textAttributes: memeTextAttributes)
         
-        // Reset everything to start with a new meme
-        prepareNewMeme()
+        // if there is a meme set for the view controller, set its image and texts to start editing from here.
+        if let meme = self.meme {
+            imageView.image = meme.originalImage
+            imageView.contentMode = meme.contentMode
+            
+            // set the contentMode toggle to the way it was when Meme was saved
+            if (meme.contentMode == .scaleAspectFit) {
+                imageModeToggle.image = UIImage(systemName: "rectangle.expand.vertical")
+            } else {
+                imageModeToggle.image = UIImage(systemName: "rectangle.compress.vertical")
+            }
+            
+            topTextField.text = meme.topText
+            bottomTextField.text = meme.bottomText
+            shareButton.isEnabled = true
+            imageModeToggle.isEnabled = true
+        } else {
+            // Reset everything to start with a new meme
+            prepareNewMeme()
+        }
     }
     
     override func viewWillAppear(_ animated: Bool) {
@@ -93,7 +113,11 @@ class MemeEditorViewController: UIViewController, UIImagePickerControllerDelegat
     
     func save() {
         // creates a Meme object using the previously set class property memedImage
-        let _ = Meme(topText: topTextField.text!, bottomText: bottomTextField.text!, originalImage: imageView.image!, memedImage: memedImage!)
+        let meme = Meme(topText: topTextField.text!, bottomText: bottomTextField.text!, originalImage: imageView.image!, memedImage: memedImage!, contentMode: imageView.contentMode)
+        
+        // add meme to the appDelegate meme array
+        let appDelegate = UIApplication.shared.delegate as!AppDelegate
+        appDelegate.memes.append(meme)
     }
     
     func generateMemedImage() ->UIImage {
@@ -135,14 +159,35 @@ class MemeEditorViewController: UIViewController, UIImagePickerControllerDelegat
         // generate memed image and set it to the class property memedImage (so that we can use it later again)
         memedImage = generateMemedImage()
         
-        // show UIActivityViewController in order to share or save the created Meme
         let activityViewController = UIActivityViewController(activityItems: [memedImage!], applicationActivities: nil)
         // this is needed for iPads
         activityViewController.popoverPresentationController?.barButtonItem = (sender as! UIBarButtonItem)
         activityViewController.completionWithItemsHandler = {
             (activityType: UIActivity.ActivityType?, completed: Bool, arrayReturnedItems: [Any]?, error: Error?) in
             self.save()
+            // close editor
+            self.dismiss(animated: true, completion: nil)
+            
+            // Note: IOS 13.x has a bug, where the view controller presenting the UIActivityViewController will be dismissed automatically when selecting "save image". In this case, viewWillAppear of the table / collection view controller will be called before the Meme is saved. Therfore, the table / collection view would normally not update the data. This is a workaround for this issue, manually calling a reloadData function for those controllers. Here's some reference for this bug: https://stackoverflow.com/questions/56903030/ios-13-uiactivityviewcontroller-automatically-present-previous-vc-after-image-sa
+            // Check if App is running on IOS 13.x
+            if ProcessInfo.processInfo.operatingSystemVersion.majorVersion == 13 {
+                // get the windows of the app. Select the first one displayed on the screen, get its rootViewController (UITabBarController) and get the selectedViewController from it (UINavigationController)
+                let windows = UIApplication.shared.windows
+                let tabBarController = windows[0].rootViewController! as! UITabBarController
+                let navigationController = tabBarController.selectedViewController! as! UINavigationController
+                // cast the topViewController of the navigationController to either SentMemesCollectionViewController or SentMemesTableViewController and call the respective reloadData function
+                if (navigationController.topViewController is SentMemesCollectionViewController) {
+                    let sentMemesCollectionViewController = navigationController.topViewController as! SentMemesCollectionViewController
+                    sentMemesCollectionViewController.reloadData()
+                } else if (navigationController.topViewController is SentMemesTableViewController) {
+                    let sentMemesTableViewController = navigationController.topViewController as! SentMemesTableViewController
+                    sentMemesTableViewController.reloadData()
+                    
+                }
+            }
+            
         }
+        
         self.present(activityViewController, animated: true, completion: nil)
     }
     
@@ -159,8 +204,9 @@ class MemeEditorViewController: UIViewController, UIImagePickerControllerDelegat
     }
     
     @IBAction func cancelAction(_ sender: Any) {
-        // if the Cancel-Button of the top Toolbar is clicked, everything needs to be reset to the initial values
+        // if the Cancel-Button of the top Toolbar is clicked, everything needs to be reset to the initial values and editor needs to be closed
         prepareNewMeme()
+        self.dismiss(animated: true, completion: nil)
     }
     
     // MARK: UIImagePickerControllerDelegate
